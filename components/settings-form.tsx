@@ -1,17 +1,17 @@
 "use client"
 
-import { useState } from 'react'
-import { useTheme } from 'next-themes'
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
+import dynamic from 'next/dynamic'
+import { useState } from 'react'
+
+const ThemeSwitcher = dynamic(() => import('@/components/theme-switcher'), { ssr: false })
 
 export function SettingsForm() {
   const [secretKey, setSecretKey] = useState('')
   const [baseUrl, setBaseUrl] = useState('')
-  const { theme, setTheme } = useTheme()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,11 +49,7 @@ export function SettingsForm() {
           </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="darkMode">Dark Mode</Label>
-            <Switch
-              id="darkMode"
-              checked={theme === 'dark'}
-              onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-            />
+            <ThemeSwitcher />
           </div>
         </CardContent>
         <CardFooter>
