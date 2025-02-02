@@ -21,7 +21,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>LingoMiner</SidebarGroupLabel>
+      <SidebarGroupLabel>LingoMiner APP</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.title}>
