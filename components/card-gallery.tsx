@@ -26,8 +26,8 @@ export function CardGallery({ cards }: { cards: Card[] }) {
       <SearchBar onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCards.map((card) => (
-          <UICard 
-            key={card.id} 
+          <UICard
+            key={card.id}
             className="flex flex-col transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-md hover:-translate-y-0.5 bg-white dark:bg-gray-800 cursor-pointer"
             onClick={() => handleCardClick(card)}
           >
@@ -63,9 +63,9 @@ export function CardGallery({ cards }: { cards: Card[] }) {
           </UICard>
         ))}
       </div>
-      <CardDialog 
-        card={selectedCard} 
-        open={dialogOpen} 
+      <CardDialog
+        card={selectedCard}
+        open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
     </div>

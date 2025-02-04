@@ -8,7 +8,7 @@ import {
 import { ThemeProvider } from "@/components/theme-provider"
 import { Breadcrumb } from "@/components/breadcrumb"
 import './globals.css'
-
+import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: "LingoMiner",
@@ -36,6 +36,7 @@ export default function RootLayout({
               {children}
             </SidebarInset>
           </SidebarProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>
