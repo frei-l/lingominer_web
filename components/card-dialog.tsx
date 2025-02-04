@@ -3,17 +3,10 @@
 import React from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-
-interface WordCard {
-  id: string
-  word: string
-  translation: string
-  example: string
-  tags: string[]
-}
+import { Card } from "@/lib/data/fetchCards"
 
 interface CardDialogProps {
-  card: WordCard | null
+  card: Card | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -23,29 +16,53 @@ export function CardDialog({ card, open, onOpenChange }: CardDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-primary">{card.word}</DialogTitle>
-          <DialogDescription className="text-lg text-gray-600 dark:text-gray-300">
-            {card.translation}
+          <DialogTitle className="text-2xl font-bold text-primary">
+            {card.url}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
+            {card.url}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-          <h3 className="font-semibold mb-2">Example:</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 italic mb-4">
-            &quot;{card.example}&quot;
-          </p>
-          <h3 className="font-semibold mb-2">Tags:</h3>
-          <div className="flex flex-wrap gap-2">
-            {card.tags.map((tag, index) => (
-              <span key={index} className="text-xs bg-primary/10 text-primary rounded-full px-2 py-1 font-semibold">
-                {tag}
-              </span>
-            ))}
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2">Paragraph:</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+              {card.paragraph}
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <h3 className="font-semibold mb-1">Position:</h3>
+              <p className="text-gray-600">
+                {card.pos_start} - {card.pos_end}
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-1">Status:</h3>
+              <p className="text-gray-600">{card.status}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-1">Created:</h3>
+              <p className="text-gray-600">
+                {new Date(card.created_at).toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-1">Modified:</h3>
+              <p className="text-gray-600">
+                {new Date(card.modified_at).toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline">Edit</Button>
+          <Button variant="outline" onClick={() => window.open(card.url, '_blank')}>
+            Visit Page
+          </Button>
+          <Button variant="default">Edit</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

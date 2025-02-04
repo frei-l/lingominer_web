@@ -1,42 +1,28 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import dynamic from 'next/dynamic'
-import { getUserConfig, setUserConfig, UserConfig } from '@/lib/cookies'
+import { setUserConfig } from "@/lib/cookies"
 
-const ThemeSwitcher = dynamic(() => import('@/components/theme-switcher'), { ssr: false })
-
-export function SettingsForm() {
-  const [apiKey, setApiKey] = useState('')
-  const [baseUrl, setBaseUrl] = useState('')
+export function LoginForm() {
+  const router = useRouter()
+  const [apiKey, setApiKey] = useState("")
+  const [baseUrl, setBaseUrl] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    const loadConfig = async () => {
-      const config = await getUserConfig()
-      if (config) {
-        setApiKey(config.apiKey)
-        setBaseUrl(config.baseUrl)
-      }
-    }
-    loadConfig()
-  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const config: UserConfig = { apiKey, baseUrl }
-      await setUserConfig(config)
-      // Show success message or notification here
+      await setUserConfig({ apiKey, baseUrl })
+      router.push("/cards")
     } catch (error) {
-      console.error('Failed to save settings:', error)
-      // Show error message or notification here
+      console.error("Failed to save configuration:", error)
     } finally {
       setIsLoading(false)
     }
@@ -46,8 +32,10 @@ export function SettingsForm() {
     <form onSubmit={handleSubmit}>
       <Card>
         <CardHeader>
-          <CardTitle>API Configuration</CardTitle>
-          <CardDescription>Configure your API settings here.</CardDescription>
+          <CardTitle>Configuration Required</CardTitle>
+          <CardDescription>
+            Please enter your API configuration to continue.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -58,6 +46,7 @@ export function SettingsForm() {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter your API key"
+              required
             />
           </div>
           <div className="space-y-2">
@@ -68,20 +57,16 @@ export function SettingsForm() {
               value={baseUrl}
               onChange={(e) => setBaseUrl(e.target.value)}
               placeholder="https://api.example.com"
+              required
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label htmlFor="darkMode">Dark Mode</Label>
-            <ThemeSwitcher />
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Settings"}
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Saving..." : "Continue"}
           </Button>
         </CardFooter>
       </Card>
     </form>
   )
-}
-
+} 
