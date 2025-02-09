@@ -186,4 +186,251 @@ export async function updateGeneration(
     } catch (error) {
         return { error: `Failed to update generation: ${error instanceof Error ? error.message : 'Unknown error'}` }
     }
+}
+
+export async function deleteTemplate(templateId: string): Promise<{ error?: string }> {
+    try {
+        const config = await getUserConfig()
+
+        if (!config) {
+            return { error: "User configuration not found" }
+        }
+
+        const response = await fetch(`${config.baseUrl}/templates/${templateId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${config.apiKey}`,
+                'Content-Type': 'application/json',
+            },
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            return { error: `${errorData.detail}` }
+        }
+
+        return {}
+    } catch (error) {
+        return { error: `Failed to delete template: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
+}
+
+interface CreateTemplatePayload {
+    name: string
+    lang: string
+}
+
+export async function createTemplate(data: CreateTemplatePayload): Promise<FetchTemplateDetailResult> {
+    try {
+        const config = await getUserConfig()
+
+        if (!config) {
+            return { error: "User configuration not found" }
+        }
+
+        const response = await fetch(`${config.baseUrl}/templates`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${config.apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+
+        if (!response.ok) {
+            return { error: `Failed to create template: ${response.statusText}` }
+        }
+
+        const template = await response.json()
+        return { template }
+    } catch (error) {
+        return { error: `Failed to create template: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
+}
+
+interface CreateGenerationPayload {
+    name: string;
+    method: string;
+    inputs: string[];
+}
+
+export async function createGeneration(
+    templateId: string,
+    data: CreateGenerationPayload
+): Promise<FetchGenerationDetailResult> {
+    try {
+        const config = await getUserConfig();
+
+        if (!config) {
+            return { error: "User configuration not found" };
+        }
+
+        const response = await fetch(
+            `${config.baseUrl}/templates/${templateId}/generations`,
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            }
+        );
+
+        if (!response.ok) {
+            return { error: `Failed to create generation: ${response.statusText}` };
+        }
+
+        const generation = await response.json();
+        return { generation };
+    } catch (error) {
+        return { error: `Failed to create generation: ${error instanceof Error ? error.message : 'Unknown error'}` };
+    }
+}
+
+export async function deleteGeneration(
+    templateId: string,
+    generationId: string
+): Promise<{ error?: string }> {
+    try {
+        const config = await getUserConfig()
+
+        if (!config) {
+            return { error: "User configuration not found" }
+        }
+
+        const response = await fetch(
+            `${config.baseUrl}/templates/${templateId}/generations/${generationId}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        )
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            return { error: `${errorData.detail}` }
+        }
+
+        return {}
+    } catch (error) {
+        return { error: `Failed to delete generation: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
+}
+
+interface CreateFieldPayload {
+    name: string;
+    type: FieldType;
+    description?: string;
+    generation_id: string;
+}
+
+export async function createField(
+    templateId: string,
+    data: CreateFieldPayload
+): Promise<{ field?: GenerationField; error?: string }> {
+    try {
+        const config = await getUserConfig();
+
+        if (!config) {
+            return { error: "User configuration not found" };
+        }
+
+        const response = await fetch(
+            `${config.baseUrl}/templates/${templateId}/fields`,
+            {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            }
+        );
+
+        if (!response.ok) {
+            return { error: `Failed to create field: ${response.statusText}` };
+        }
+
+        const field = await response.json();
+        return { field };
+    } catch (error) {
+        return { error: `Failed to create field: ${error instanceof Error ? error.message : 'Unknown error'}` };
+    }
+}
+
+export async function deleteField(
+    templateId: string,
+    fieldId: string
+): Promise<{ error?: string }> {
+    try {
+        const config = await getUserConfig()
+
+        if (!config) {
+            return { error: "User configuration not found" }
+        }
+
+        const response = await fetch(
+            `${config.baseUrl}/templates/${templateId}/fields/${fieldId}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        )
+
+        if (!response.ok) {
+            const errorData = await response.json()
+            return { error: `${errorData.detail}` }
+        }
+
+        return {}
+    } catch (error) {
+        return { error: `Failed to delete field: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
+}
+
+interface UpdateFieldPayload {
+    description?: string;
+    type?: FieldType;
+}
+
+export async function updateField(
+    templateId: string,
+    fieldId: string,
+    data: UpdateFieldPayload
+): Promise<{ field?: GenerationField; error?: string }> {
+    try {
+        const config = await getUserConfig()
+
+        if (!config) {
+            return { error: "User configuration not found" }
+        }
+
+        const response = await fetch(
+            `${config.baseUrl}/templates/${templateId}/fields/${fieldId}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            }
+        )
+
+        if (!response.ok) {
+            return { error: `Failed to update field: ${response.statusText}` }
+        }
+
+        const field = await response.json()
+        return { field }
+    } catch (error) {
+        return { error: `Failed to update field: ${error instanceof Error ? error.message : 'Unknown error'}` }
+    }
 } 

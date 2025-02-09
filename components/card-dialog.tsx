@@ -32,6 +32,21 @@ export function CardDialog({ card, open, onOpenChange }: CardDialogProps) {
               {card.paragraph}
             </p>
           </div>
+          <div className="mb-4">
+            <h3 className="font-semibold mb-2">Content:</h3>
+            <div className="text-sm text-gray-600 dark:text-gray-300">
+              <table className="w-full border-collapse">
+                <tbody>
+                  {Object.entries(card.content).map(([key, value]) => (
+                    <tr key={key} className="border-b border-gray-200 dark:border-gray-700">
+                      <td className="py-2 px-4 font-medium">{key}</td>
+                      <td className="py-2 px-4">{String(value)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
           
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>

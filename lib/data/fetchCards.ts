@@ -5,6 +5,7 @@ export interface Card {
     paragraph: string
     pos_start: number
     pos_end: number
+    content: object
     url: string
     status: string
     created_at: string
