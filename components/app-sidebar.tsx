@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { WalletCardsIcon as Cards, FileText, Settings, LayoutDashboard } from 'lucide-react'
+import { WalletCardsIcon as Cards, FileText, Settings, LayoutDashboard, BookOpen } from 'lucide-react'
 import { NavMain } from "@/components/nav-main"
 import {
   Sidebar,
@@ -24,6 +24,11 @@ const data = {
       title: "Templates",
       url: "/templates",
       icon: FileText,
+    },
+    {
+      title: "Reader",
+      url: "/reader",
+      icon: BookOpen,
     },
     {
       title: "Settings",

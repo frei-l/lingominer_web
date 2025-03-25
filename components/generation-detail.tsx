@@ -32,7 +32,7 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
         description: ""
     })
     const createCardRef = useRef<HTMLDivElement>(null)
-    
+
     const [editData, setEditData] = useState({
         name: generation.name,
         method: generation.method,
@@ -44,15 +44,15 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             const target = event.target as HTMLElement;
-            
-            if (target.closest('[role="combobox"]') || 
-                target.closest('[role="listbox"]') || 
+
+            if (target.closest('[role="combobox"]') ||
+                target.closest('[role="listbox"]') ||
                 target.closest('[role="option"]')) {
                 return;
             }
 
-            if (target.closest('input') || 
-                target.closest('textarea') || 
+            if (target.closest('input') ||
+                target.closest('textarea') ||
                 target.closest('button')) {
                 return;
             }
@@ -60,7 +60,7 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
             if (editCardRef.current && !editCardRef.current.contains(target)) {
                 setEditingFieldId(null);
             }
-            
+
             if (createCardRef.current && !createCardRef.current.contains(target)) {
                 setIsCreatingField(false);
             }
@@ -124,7 +124,7 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
         if (result.field) {
             setGeneration(prev => ({
                 ...prev,
-                outputs: prev.outputs.map(output => 
+                outputs: prev.outputs.map(output =>
                     output.id === fieldId ? result.field! : output
                 )
             }))
@@ -234,8 +234,8 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
     return (
         <div className="container mx-auto py-8">
             <div className="flex justify-between items-center mb-4">
-                <Link 
-                    href={`/templates/${generation.template_id}`} 
+                <Link
+                    href={`/templates/${generation.template_id}`}
                     className="flex items-center text-primary hover:underline"
                 >
                     <ArrowLeft className="mr-2" size={20} />
@@ -258,11 +258,11 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
             <div className="space-y-6">
                 <div className="space-y-4">
                     <h1 className="text-2xl font-bold">{generation.name}</h1>
-                    
+
                     <div>
                         <label className="text-sm font-medium mb-2 block">Generation Method</label>
-                        <Select 
-                            value={editData.method} 
+                        <Select
+                            value={editData.method}
                             onValueChange={(value) => {
                                 setEditData(prev => ({ ...prev, method: value }))
                                 setIsModified(true)
@@ -313,8 +313,8 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                     <h2 className="text-lg font-semibold mb-2">Output Fields</h2>
                     <div className="space-y-4">
                         {generation.outputs.map((output) => (
-                            <Card 
-                                key={output.id} 
+                            <Card
+                                key={output.id}
                                 ref={output.id === editingFieldId ? editCardRef : undefined}
                                 onClick={() => setEditingFieldId(output.id)}
                                 className="cursor-pointer hover:border-primary transition-colors"
@@ -379,8 +379,8 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
 
                         {/* Add Field button */}
                         {isCreatingField ? (
-                            <Card 
-                                ref={createCardRef} 
+                            <Card
+                                ref={createCardRef}
                                 className="border-primary"
                             >
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -394,15 +394,15 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                                         />
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button 
-                                            size="sm" 
+                                        <Button
+                                            size="sm"
                                             variant="ghost"
                                             onClick={() => setIsCreatingField(false)}
                                         >
                                             <X className="h-4 w-4" />
                                         </Button>
-                                        <Button 
-                                            size="sm" 
+                                        <Button
+                                            size="sm"
                                             onClick={handleCreateField}
                                         >
                                             <Check className="h-4 w-4" />
@@ -413,7 +413,7 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                                     <div className="space-y-2">
                                         <Select
                                             value={newField.type}
-                                            onValueChange={(value: FieldType) => 
+                                            onValueChange={(value: FieldType) =>
                                                 setNewField(prev => ({ ...prev, type: value }))
                                             }
                                         >
@@ -435,8 +435,8 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                                 </CardContent>
                             </Card>
                         ) : (
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 className="w-full"
                                 onClick={() => setIsCreatingField(true)}
                             >
