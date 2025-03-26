@@ -35,7 +35,8 @@ export function CardGallery({ cards }: { cards: Card[] }) {
               <CardTitle className="text-2xl font-bold text-primary">
                 {card.paragraph.slice(card.pos_start, card.pos_end)}
               </CardTitle>
-              <CardDescription className="text-lg text-gray-600 dark:text-gray-300">
+              <CardDescription className="text-lg text-gray-600 dark:text-gray-300" suppressHydrationWarning>
+                {/* different timezone will cause hydration error */}
                 {new Date(card.created_at).toLocaleDateString()}
               </CardDescription>
             </CardHeader>
