@@ -1,6 +1,6 @@
 "use client"
 
-import { ReaderPage } from "@/components/reader-content"
+import Reader from "@/components/reader/reader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Toaster } from "@/components/ui/toaster"
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Passage, createPassage, getPassages } from "@/lib/data/fetchPassage"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
+
 export default function Page() {
   const [content, setContent] = useState<string | null>(null)
   const [passages, setPassages] = useState<Passage[]>([])
@@ -30,11 +31,21 @@ export default function Page() {
         const passageResult = await createPassage(inputUrl)
         if (passageResult.error) {
           console.error("Error creating passage:", passageResult.error)
+          toast({
+            title: "Error",
+            description: "Failed to fetch content from URL",
+            variant: "destructive",
+          })
+          return
         }
         setContent(passageResult.passage?.content || null)
       } catch (error) {
         console.error("Error fetching content:", error)
-        setContent("Error loading content. Please try again.")
+        toast({
+          title: "Error",
+          description: "Failed to fetch content from URL",
+          variant: "destructive",
+        })
       }
     } else {
       setContent(null)
@@ -42,14 +53,14 @@ export default function Page() {
   }
 
   if (content !== null) {
-    return <ReaderPage content={content} />
+    return <Reader content={content} />
   }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md space-y-8">
         <h1 className="text-3xl font-bold text-center">LingoMiner Reader</h1>
-        <form onSubmit={fetchContent} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); fetchContent(); }} className="space-y-4">
           <Input
             type="url"
             placeholder="Enter URL"
