@@ -4,8 +4,11 @@ import { useRef, useEffect, useState } from "react"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { X } from "lucide-react"
+import { X, Save } from "lucide-react"
 import type { Note } from "@/lib/api/types"
+import { cardsAPI } from "@/lib/api/useDataUpdate"
+import { useToast } from "@/hooks/use-toast"
+
 interface ExplanationBubbleProps {
     note: Note | null
     isLoading: boolean
@@ -16,6 +19,7 @@ interface ExplanationBubbleProps {
 export default function ExplanationBubble({ note, isLoading, onClose, loadingPosition }: ExplanationBubbleProps) {
     const bubbleRef = useRef<HTMLDivElement>(null)
     const [position, setPosition] = useState({ top: 0, right: 0 })
+    const { toast } = useToast()
 
     // Find the highlighted element and position the bubble next to it
     useEffect(() => {
@@ -52,6 +56,28 @@ export default function ExplanationBubble({ note, isLoading, onClose, loadingPos
         }
     }, [note, isLoading, loadingPosition])
 
+    const handleSave = async () => {
+        if (!note) return
+
+        try {
+            await cardsAPI.create({
+                paragraph: note.context,
+                pos_start: note.start_index,
+                pos_end: note.end_index,
+            })
+            toast({
+                title: "Card created",
+                description: "The explanation has been saved as a card.",
+            })
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to create card. Please try again.",
+                variant: "destructive",
+            })
+        }
+    }
+
     return (
         <motion.div
             ref={bubbleRef}
@@ -87,6 +113,12 @@ export default function ExplanationBubble({ note, isLoading, onClose, loadingPos
                                 <p className="text-sm">{note.content}</p>
                             </>
                         ) : null}
+                    </div>
+
+                    <div className="flex justify-start">
+                        <Button variant="ghost" className=" mt-2" size="sm" onClick={handleSave}>
+                            <Save className="h-4 w-4" />
+                        </Button>
                     </div>
                 </div>
             </Card>

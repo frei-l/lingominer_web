@@ -3,14 +3,17 @@
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card } from "@/lib/api"
+import { Trash2 } from "lucide-react"
 
 interface CardDialogProps {
   card: Card | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onDelete: (cardId: string) => void
 }
 
-export function CardDialog({ card, open, onOpenChange }: CardDialogProps) {
+export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogProps) {
+
   if (!card) return null
 
   return (
@@ -68,7 +71,11 @@ export function CardDialog({ card, open, onOpenChange }: CardDialogProps) {
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex justify-between">
+          <Button variant="destructive" onClick={() => onDelete(card.id)}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete
+          </Button>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>

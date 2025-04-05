@@ -128,6 +128,13 @@ export interface CreateNoteRequest {
   end_index: number
 }
 
+export interface CreateCardRequest {
+  paragraph: string
+  pos_start: number
+  pos_end: number
+  template_id?: string
+  url?: string
+}
 
 // Utility types
 export type FieldType = "text" | "audio" 

@@ -1,13 +1,13 @@
 "use client"
 
 import { apiFetch } from './core'
-import { Card, GenerationDetail, GenerationField, PassageList, Template, CreateNoteRequest, Note } from './types'
+import { Card, GenerationDetail, GenerationField, PassageList, Template, CreateNoteRequest, Note, CreateCardRequest } from './types'
 
 
 
 // Cards
 export const cardsAPI = {
-    create: (data: Partial<Card>) =>
+    create: (data: CreateCardRequest) =>
         apiFetch<Card>('/cards', 'POST', data),
 
     update: (id: string, data: Partial<Card>) =>
