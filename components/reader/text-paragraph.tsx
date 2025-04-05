@@ -3,23 +3,25 @@
 import type React from "react"
 
 // Component for rendering paragraphs with highlights
-import { useNotesStore } from "@/lib/notes-store"
 import { useRef, createRef } from "react"
+import { Note } from "@/lib/api/types"
 
 interface TextParagraphProps {
     text: string
     paragraphIndex: number
     paragraphRef: React.RefObject<HTMLParagraphElement>
+    notes: Note[]
+    activeNoteId: string | null
+    setActiveNoteId: (noteId: string | null) => void
 }
 
-export default function TextParagraph({ text, paragraphIndex, paragraphRef }: TextParagraphProps) {
-    const { getNotesByParagraph, activeNoteId, toggleNoteActive } = useNotesStore()
+export default function TextParagraph({ text, paragraphIndex, paragraphRef, notes, activeNoteId, setActiveNoteId }: TextParagraphProps) {
 
     // Create a map to store refs for each highlight
     const highlightRefs = useRef(new Map<string, React.RefObject<HTMLSpanElement | null>>())
 
     // Get notes for this paragraph
-    const paragraphNotes = getNotesByParagraph(paragraphIndex)
+    const paragraphNotes = notes.filter(note => note.paragraph_index === paragraphIndex)
 
     // Create refs for each note if they don't exist
     paragraphNotes.forEach((note) => {
@@ -38,7 +40,7 @@ export default function TextParagraph({ text, paragraphIndex, paragraphRef }: Te
     }
 
     // Sort notes by their start position to handle overlapping highlights
-    const sortedNotes = [...paragraphNotes].sort((a, b) => a.startIndex - b.startIndex)
+    const sortedNotes = [...paragraphNotes].sort((a, b) => a.start_index - b.start_index)
 
     // Build the paragraph with highlights
     const result = []
@@ -46,8 +48,8 @@ export default function TextParagraph({ text, paragraphIndex, paragraphRef }: Te
 
     for (const note of sortedNotes) {
         // Add text before the highlight
-        if (note.startIndex > lastIndex) {
-            result.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex, note.startIndex)}</span>)
+        if (note.start_index > lastIndex) {
+            result.push(<span key={`text-${lastIndex}`}>{text.substring(lastIndex, note.start_index)}</span>)
         }
 
         // Get the ref for this highlight
@@ -56,7 +58,7 @@ export default function TextParagraph({ text, paragraphIndex, paragraphRef }: Te
         // Add the highlighted text
         result.push(
             <span key={`highlight-${note.id}`} className="relative inline" ref={highlightRef} data-note-id={note.id}>
-                {text.substring(note.startIndex, note.endIndex)}
+                {text.substring(note.start_index, note.end_index)}
                 <span
                     className={`absolute left-0 right-0 h-2 -bottom-1 ${activeNoteId === note.id ? "bg-yellow-300/60" : "bg-yellow-200/50"}`}
                     style={{ zIndex: 1 }}
@@ -64,12 +66,12 @@ export default function TextParagraph({ text, paragraphIndex, paragraphRef }: Te
                 <span
                     className="absolute left-0 right-0 top-0 bottom-0 cursor-pointer"
                     style={{ zIndex: 2 }}
-                    onClick={() => toggleNoteActive(note.id)}
+                    onClick={() => setActiveNoteId(note.id)}
                 />
             </span>,
         )
 
-        lastIndex = note.endIndex
+        lastIndex = note.end_index
     }
 
     // Add any remaining text

@@ -1,68 +1,92 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import Link from "next/link"
-import { ArrowLeft, Check, Trash2, Plus, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+// UI Components
 import { Badge } from "@/components/ui/badge"
-import { Type, Music } from "lucide-react"
-import { GenerationDetail as GenerationDetailType, updateGeneration, deleteGeneration, createField, deleteField, updateField } from "@/lib/data/fetchTemplates"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 
+// Hooks and Utilities
+import { useToast } from "@/hooks/use-toast"
+import { FieldType, GenerationDetail, templatesAPI, useGenerationDetail } from "@/lib/api"
+import { ArrowLeft, Check, Music, Plus, Trash2, Type, X } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
+
+// Types
 interface GenerationDetailProps {
-    generation: GenerationDetailType
+    templateId: string
+    generationId: string
 }
 
-export function GenerationDetail({ generation: initialGeneration }: GenerationDetailProps) {
+export function GenerationContainer({ generationId, templateId }: GenerationDetailProps) {
+    // Hooks
     const router = useRouter()
     const { toast } = useToast()
-    const [generation, setGeneration] = useState(initialGeneration)
+    const { data: generation, isLoading, error, mutate: mutateGeneration } = useGenerationDetail(templateId, generationId)
+
+    // State for field editing
     const [editingFieldId, setEditingFieldId] = useState<string | null>(null)
-    const [isModified, setIsModified] = useState(false)
-    const editCardRef = useRef<HTMLDivElement>(null)
-    const generationOptions = ["completion"]
-    const [isCreatingField, setIsCreatingField] = useState(false)
-    const [newField, setNewField] = useState({
+    const [modifiedFieldDescriptions, setModifiedFieldDescriptions] = useState<Record<string, string>>({})
+
+    // State for generation editing
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+    const [generationEditData, setGenerationEditData] = useState<Partial<GenerationDetail>>({})
+
+    // State for new field creation
+    const [isCreatingOutputField, setIsCreatingOutputField] = useState(false)
+    const [newOutputField, setNewOutputField] = useState({
         name: "",
         type: "text" as FieldType,
         description: ""
     })
+
+    // Refs for click outside handling
+    const editCardRef = useRef<HTMLDivElement>(null)
     const createCardRef = useRef<HTMLDivElement>(null)
 
-    const [editData, setEditData] = useState({
-        name: generation.name,
-        method: generation.method,
-        prompt: generation.prompt || ""
-    })
+    // Constants
+    const generationOptions = ["completion"]
 
-    const [modifiedFields, setModifiedFields] = useState<Record<string, string>>({})
+    // Initialize generation edit data when generation is loaded
+    useEffect(() => {
+        if (generation) {
+            setGenerationEditData({
+                method: generation.method,
+                prompt: generation.prompt
+            })
+        }
+    }, [generation])
 
+    // Handle click outside to close edit/create modes
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             const target = event.target as HTMLElement;
 
+            // Don't close if clicking on select components
             if (target.closest('[role="combobox"]') ||
                 target.closest('[role="listbox"]') ||
                 target.closest('[role="option"]')) {
                 return;
             }
 
+            // Don't close if clicking on form elements
             if (target.closest('input') ||
                 target.closest('textarea') ||
                 target.closest('button')) {
                 return;
             }
 
+            // Close field edit mode
             if (editCardRef.current && !editCardRef.current.contains(target)) {
                 setEditingFieldId(null);
             }
 
+            // Close field creation mode
             if (createCardRef.current && !createCardRef.current.contains(target)) {
-                setIsCreatingField(false);
+                setIsCreatingOutputField(false);
             }
         }
 
@@ -70,65 +94,67 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // Event Handlers
+
+    /**
+     * Save changes to the generation
+     */
     const handleSave = async () => {
-        const result = await updateGeneration(
-            generation.template_id,
-            generation.id,
-            editData
-        )
+        if (!generation) return
 
-        if (result.error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: result.error
-            })
-            return
-        }
+        try {
+            const result = await templatesAPI.updateGeneration(
+                templateId,
+                generationId,
+                generationEditData
+            )
 
-        if (result.generation) {
-            setGeneration(result.generation)
-            setIsModified(false)
+            await mutateGeneration(result)
+            setHasUnsavedChanges(false)
             toast({
                 title: "Success",
                 description: "Generation updated successfully"
             })
             router.refresh()
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to update generation"
+            })
         }
     }
 
+    /**
+     * Update field description
+     */
     const handleFieldEdit = (fieldId: string, newDescription: string) => {
-        setModifiedFields(prev => ({
+        setModifiedFieldDescriptions(prev => ({
             ...prev,
             [fieldId]: newDescription
         }))
     }
 
+    /**
+     * Save changes to a field
+     */
     const handleUpdateField = async (fieldId: string) => {
+        if (!generation) return
         const field = generation.outputs.find(f => f.id === fieldId)
         if (!field) return
 
-        const result = await updateField(generation.template_id, fieldId, {
-            description: modifiedFields[fieldId]
-        })
-
-        if (result.error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: result.error
+        try {
+            const result = await templatesAPI.updateField(generation.template_id, fieldId, {
+                description: modifiedFieldDescriptions[fieldId]
             })
-            return
-        }
 
-        if (result.field) {
-            setGeneration(prev => ({
-                ...prev,
-                outputs: prev.outputs.map(output =>
-                    output.id === fieldId ? result.field! : output
+            await mutateGeneration({
+                ...generation,
+                outputs: generation.outputs.map(output =>
+                    output.id === fieldId ? result : output
                 )
-            }))
-            setModifiedFields(prev => {
+            })
+            setModifiedFieldDescriptions(prev => {
                 const newState = { ...prev }
                 delete newState[fieldId]
                 return newState
@@ -139,33 +165,43 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                 description: "Field updated successfully"
             })
             router.refresh()
-        }
-    }
-
-    const handleDelete = async () => {
-        const result = await deleteGeneration(
-            generation.template_id,
-            generation.id
-        )
-
-        if (result.error) {
+        } catch (error) {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: result.error
+                description: error instanceof Error ? error.message : "Failed to update field"
             })
-            return
         }
-
-        toast({
-            title: "Success",
-            description: "Generation deleted successfully"
-        })
-        router.push(`/templates/${generation.template_id}`)
     }
 
+    /**
+     * Delete the generation
+     */
+    const handleDelete = async () => {
+        if (!generation) return
+
+        try {
+            await templatesAPI.deleteGeneration(
+                templateId,
+                generationId
+            )
+
+            router.push(`/templates/${templateId}`)
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to delete generation"
+            })
+        }
+    }
+
+    /**
+     * Create a new output field
+     */
     const handleCreateField = async () => {
-        if (!newField.name) {
+        if (!generation) return
+        if (!newOutputField.name) {
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -174,27 +210,18 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
             return
         }
 
-        const result = await createField(generation.template_id, {
-            ...newField,
-            generation_id: generation.id
-        })
-
-        if (result.error) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: result.error
+        try {
+            const result = await templatesAPI.createField(generation.template_id, {
+                ...newOutputField,
+                generation_id: generation.id
             })
-            return
-        }
 
-        if (result.field) {
-            setGeneration(prev => ({
-                ...prev,
-                outputs: [...prev.outputs, result.field!]
-            }))
-            setIsCreatingField(false)
-            setNewField({
+            await mutateGeneration({
+                ...generation,
+                outputs: [...generation.outputs, result]
+            })
+            setIsCreatingOutputField(false)
+            setNewOutputField({
                 name: "",
                 type: "text",
                 description: ""
@@ -204,45 +231,62 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                 description: "Field created successfully"
             })
             router.refresh()
-        }
-    }
-
-    const handleDeleteField = async (fieldId: string) => {
-        const result = await deleteField(generation.template_id, fieldId)
-
-        if (result.error) {
+        } catch (error) {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: result.error
+                description: error instanceof Error ? error.message : "Failed to create field"
             })
-            return
         }
-
-        setGeneration(prev => ({
-            ...prev,
-            outputs: prev.outputs.filter(output => output.id !== fieldId)
-        }))
-        setEditingFieldId(null)
-        toast({
-            title: "Success",
-            description: "Field deleted successfully"
-        })
-        router.refresh()
     }
 
+    /**
+     * Delete an output field
+     */
+    const handleDeleteField = async (fieldId: string) => {
+        if (!generation) return
+
+        try {
+            await templatesAPI.deleteField(generation.template_id, fieldId)
+
+            await mutateGeneration({
+                ...generation,
+                outputs: generation.outputs.filter(output => output.id !== fieldId)
+            })
+            setEditingFieldId(null)
+            toast({
+                title: "Success",
+                description: "Field deleted successfully"
+            })
+            router.refresh()
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to delete field"
+            })
+        }
+    }
+
+    // Loading and Error States
+    if (isLoading) return <div>Loading...</div>
+    if (error) return <div>Error: {error.message}</div>
+    if (!generation) return <div>Generation not found</div>
+
+    // Main Render
     return (
-        <div className="container mx-auto py-8">
+        <div className="container">
+            {/* Header Section */}
             <div className="flex justify-between items-center mb-4">
                 <Link
                     href={`/templates/${generation.template_id}`}
-                    className="flex items-center text-primary hover:underline"
+                    className="text-xl font-bold flex items-center text-primary hover:underline"
                 >
                     <ArrowLeft className="mr-2" size={20} />
                     Back to Template
                 </Link>
                 <div className="flex gap-2">
-                    {isModified && (
+                    {hasUnsavedChanges && (
                         <Button onClick={handleSave}>
                             <Check className="mr-2 h-4 w-4" />
                             Save Changes
@@ -256,16 +300,17 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
             </div>
 
             <div className="space-y-6">
+                {/* Generation Settings Section */}
                 <div className="space-y-4">
                     <h1 className="text-2xl font-bold">{generation.name}</h1>
 
                     <div>
                         <label className="text-sm font-medium mb-2 block">Generation Method</label>
                         <Select
-                            value={editData.method}
+                            value={generationEditData.method}
                             onValueChange={(value) => {
-                                setEditData(prev => ({ ...prev, method: value }))
-                                setIsModified(true)
+                                setGenerationEditData(prev => ({ ...prev, method: value }))
+                                setHasUnsavedChanges(true)
                             }}
                         >
                             <SelectTrigger>
@@ -285,17 +330,17 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                         <label className="text-sm font-medium mb-2 block">Prompt</label>
                         <Textarea
                             placeholder="Enter your prompt here"
-                            value={editData.prompt}
+                            value={generationEditData.prompt}
                             onChange={(e) => {
-                                setEditData(prev => ({ ...prev, prompt: e.target.value }))
-                                setIsModified(true)
+                                setGenerationEditData(prev => ({ ...prev, prompt: e.target.value }))
+                                setHasUnsavedChanges(true)
                             }}
                             className="min-h-[100px]"
                         />
                     </div>
                 </div>
 
-                {/* Input Fields */}
+                {/* Input Fields Section */}
                 <div>
                     <h2 className="text-lg font-semibold mb-2">Input Fields</h2>
                     <div className="flex flex-wrap gap-2">
@@ -308,7 +353,7 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                     </div>
                 </div>
 
-                {/* Output Fields */}
+                {/* Output Fields Section */}
                 <div>
                     <h2 className="text-lg font-semibold mb-2">Output Fields</h2>
                     <div className="space-y-4">
@@ -331,7 +376,7 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                                         </CardTitle>
                                         {editingFieldId === output.id && (
                                             <div className="flex gap-2">
-                                                {modifiedFields[output.id] !== undefined && (
+                                                {modifiedFieldDescriptions[output.id] !== undefined && (
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
@@ -362,7 +407,7 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                                 <CardContent>
                                     {editingFieldId === output.id ? (
                                         <Textarea
-                                            value={modifiedFields[output.id] ?? output.description ?? ""}
+                                            value={modifiedFieldDescriptions[output.id] ?? output.description ?? ""}
                                             onChange={(e) => handleFieldEdit(output.id, e.target.value)}
                                             className="mt-2"
                                             placeholder="Enter field description"
@@ -377,8 +422,8 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                             </Card>
                         ))}
 
-                        {/* Add Field button */}
-                        {isCreatingField ? (
+                        {/* Add Field Section */}
+                        {isCreatingOutputField ? (
                             <Card
                                 ref={createCardRef}
                                 className="border-primary"
@@ -389,15 +434,15 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                                             type="text"
                                             placeholder="Field name"
                                             className="text-base font-semibold bg-transparent border-none focus:outline-none"
-                                            value={newField.name}
-                                            onChange={(e) => setNewField(prev => ({ ...prev, name: e.target.value }))}
+                                            value={newOutputField.name}
+                                            onChange={(e) => setNewOutputField(prev => ({ ...prev, name: e.target.value }))}
                                         />
                                     </div>
                                     <div className="flex gap-2">
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => setIsCreatingField(false)}
+                                            onClick={() => setIsCreatingOutputField(false)}
                                         >
                                             <X className="h-4 w-4" />
                                         </Button>
@@ -412,9 +457,9 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                                 <CardContent>
                                     <div className="space-y-2">
                                         <Select
-                                            value={newField.type}
+                                            value={newOutputField.type}
                                             onValueChange={(value: FieldType) =>
-                                                setNewField(prev => ({ ...prev, type: value }))
+                                                setNewOutputField(prev => ({ ...prev, type: value }))
                                             }
                                         >
                                             <SelectTrigger className="w-full">
@@ -426,8 +471,8 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                                             </SelectContent>
                                         </Select>
                                         <Textarea
-                                            value={newField.description}
-                                            onChange={(e) => setNewField(prev => ({ ...prev, description: e.target.value }))}
+                                            value={newOutputField.description}
+                                            onChange={(e) => setNewOutputField(prev => ({ ...prev, description: e.target.value }))}
                                             className="mt-2"
                                             placeholder="Enter field description"
                                         />
@@ -438,7 +483,7 @@ export function GenerationDetail({ generation: initialGeneration }: GenerationDe
                             <Button
                                 variant="outline"
                                 className="w-full"
-                                onClick={() => setIsCreatingField(true)}
+                                onClick={() => setIsCreatingOutputField(true)}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add Field

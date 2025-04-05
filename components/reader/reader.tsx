@@ -6,18 +6,41 @@ import ExplanationBubble from "@/components/reader/explanation-bubble"
 import SelectionMenu from "@/components/reader/selection-menu"
 import TextParagraph from "@/components/reader/text-paragraph"
 import { TextSelectionProvider, useTextSelection } from "@/contexts/text-selection-context"
-import { generateExplanation } from "@/lib/explanation-service"
-import { useNotesStore } from "@/lib/notes-store"
 import { AnimatePresence } from "motion/react"
 import { createRef, useEffect, useRef, useState } from "react"
-
+import { usePassage } from "@/lib/api/useDataFetch"
+import type { Passage } from "@/lib/api/types"
+import { passagesAPI } from "@/lib/api"
+import { useSWRConfig } from "swr"
 interface ReaderProps {
-    content: string;
+    passageId: string
+}
+export default function Reader({ passageId }: ReaderProps) {
+    const { data: passage, error } = usePassage(passageId)
+
+    if (error) {
+        console.error("Error fetching passage:", error)
+        return <div>Error loading passage</div>
+    }
+
+    if (!passage) {
+        return <div>Loading...</div>
+    }
+    console.log(passage.notes)
+    return (
+        <TextSelectionProvider>
+            <ReaderContent passage={passage} />
+        </TextSelectionProvider>
+    )
 }
 
-function ReaderContent({ content }: ReaderProps) {
+
+function ReaderContent({ passage }: { passage: Passage }) {
+    const { mutate } = useSWRConfig()
+
     // Loading state
     const [isLoading, setIsLoading] = useState(false)
+    const [activeNoteId, setActiveNoteId] = useState<string | null>(null)
 
     // Store the current selection position for loading state
     const [loadingPosition, setLoadingPosition] = useState({ top: 0, right: 0 })
@@ -25,9 +48,8 @@ function ReaderContent({ content }: ReaderProps) {
     // Refs
     const readerRef = useRef<HTMLDivElement>(null)
 
-    // Split the content into paragraphs
-    const paragraphTitle = content.split("\n")[0].replace(/^#\s*/, '')
-    const paragraphs = content.trim().split("\n\n").slice(1)
+    const paragraphTitle = passage.content.split("\n")[0].replace(/^#\s*/, '')
+    const paragraphs = passage.content.trim().split("\n\n").slice(1)
 
     // Create refs for each paragraph
     const paragraphRefs = useRef<Array<React.RefObject<HTMLParagraphElement>>>([])
@@ -37,8 +59,6 @@ function ReaderContent({ content }: ReaderProps) {
         paragraphRefs.current = paragraphs.map(() => createRef<HTMLParagraphElement>()) as Array<React.RefObject<HTMLParagraphElement>>
     }
 
-    // Notes store
-    const { setActiveNote, getActiveNote, addNote } = useNotesStore()
 
     // Text selection context
     const { showMenu, selectionPosition, getSelectionInfo, resetSelection } = useTextSelection()
@@ -76,10 +96,20 @@ function ReaderContent({ content }: ReaderProps) {
 
         try {
             // Generate explanation
-            const explanation = await generateExplanation(selectionInfo)
+            const note = await passagesAPI.createNote(passage.id, {
+                selected_text: selectionInfo.text,
+                context: selectionInfo.context,
+                paragraph_index: selectionInfo.paragraphIndex,
+                start_index: selectionInfo.startIndex,
+                end_index: selectionInfo.endIndex,
+            })
 
             // Add note to store
-            addNote(selectionInfo, explanation)
+            mutate(`/passages/${passage.id}`, {
+                ...passage,
+                notes: [...passage.notes, note]
+            })
+            setActiveNoteId(note.id)
         } catch (error) {
             console.error("Error generating explanation:", error)
         } finally {
@@ -88,11 +118,11 @@ function ReaderContent({ content }: ReaderProps) {
     }
 
     const handleCloseExplanation = () => {
-        setActiveNote(null)
+        setActiveNoteId(null)
     }
 
     // Get the active note from store
-    const activeNote = getActiveNote()
+    const activeNote = passage.notes.find(note => note.id === activeNoteId)
 
     return (
         <div className="relative" ref={readerRef} data-reader-container>
@@ -107,6 +137,9 @@ function ReaderContent({ content }: ReaderProps) {
                                 text={paragraph}
                                 paragraphIndex={index}
                                 paragraphRef={paragraphRefs.current[index]}
+                                notes={passage.notes}
+                                activeNoteId={activeNoteId}
+                                setActiveNoteId={setActiveNoteId}
                             />
                         ))}
                     </div>
@@ -114,7 +147,7 @@ function ReaderContent({ content }: ReaderProps) {
                     <AnimatePresence>
                         {(activeNote || isLoading) && (
                             <ExplanationBubble
-                                note={activeNote}
+                                note={activeNote || null}
                                 isLoading={isLoading}
                                 onClose={handleCloseExplanation}
                                 loadingPosition={isLoading ? loadingPosition : undefined}
@@ -132,12 +165,3 @@ function ReaderContent({ content }: ReaderProps) {
         </div>
     )
 }
-
-export default function Reader({ content }: ReaderProps) {
-    return (
-        <TextSelectionProvider>
-            <ReaderContent content={content} />
-        </TextSelectionProvider>
-    )
-}
-

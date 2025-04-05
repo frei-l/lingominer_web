@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import dynamic from 'next/dynamic'
-import { getUserConfig, setUserConfig, UserConfig } from '@/lib/cookies'
+import { getUserConfig, setUserConfig, UserConfig } from '@/lib/storage'
 
 const ThemeSwitcher = dynamic(() => import('@/components/theme-switcher'), { ssr: false })
 
@@ -16,23 +16,20 @@ export function SettingsForm() {
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    const loadConfig = async () => {
-      const config = await getUserConfig()
-      if (config) {
-        setApiKey(config.apiKey)
-        setBaseUrl(config.baseUrl)
-      }
+    const config = getUserConfig()
+    if (config) {
+      setApiKey(config.apiKey)
+      setBaseUrl(config.baseUrl)
     }
-    loadConfig()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
       const config: UserConfig = { apiKey, baseUrl }
-      await setUserConfig(config)
+      setUserConfig(config)
       // Show success message or notification here
     } catch (error) {
       console.error('Failed to save settings:', error)

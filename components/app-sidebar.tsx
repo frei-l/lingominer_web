@@ -2,18 +2,23 @@
 
 import * as React from "react"
 import { WalletCardsIcon as Cards, FileText, Settings, LayoutDashboard, BookOpen } from 'lucide-react'
-import { NavMain } from "@/components/nav-main"
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-  SidebarGroupLabel
+  SidebarGroupLabel,
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 // This is sample data.
 const data = {
+
   navMain: [
     {
       title: "Cards",
@@ -41,12 +46,25 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader/>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
+      <SidebarHeader className="group-data-[collapsible=icon]:hidden">
+        <h1 className="text-md font-bold ml-2 mt-4">LingoMiner</h1>
+      </SidebarHeader>
+      <div className="group-data-[collapsible=icon]:mt-4"/>
+      <SidebarContent >
+        <SidebarMenu>
+          {data.navMain.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild className="mb-1 text-md ml-2">
+                <Link href={item.url}>
+                  {item.icon && <item.icon className="mr-2" />}
+                  <span>{item.title}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
   )
 }
-

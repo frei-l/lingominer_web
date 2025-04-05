@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { useTemplateDetail, useGenerationDetail } from '@/lib/api'
 
 const staticRoutes = [
   { path: '/dashboard', label: 'Dashboard' },
@@ -16,7 +17,7 @@ export function Breadcrumb() {
 
   const getBreadcrumbs = () => {
     // First check static routes
-    const staticBreadcrumbs = staticRoutes.filter(route => 
+    const staticBreadcrumbs = staticRoutes.filter(route =>
       pathname.startsWith(route.path)
     )
 
@@ -57,11 +58,10 @@ export function Breadcrumb() {
             )}
             <Link
               href={breadcrumb.path}
-              className={`inline-flex items-center text-sm font-medium ${
-                index === breadcrumbs.length - 1
-                  ? 'text-gray-700 dark:text-gray-300'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-              }`}
+              className={`inline-flex items-center text-sm font-medium ${index === breadcrumbs.length - 1
+                ? 'text-gray-700 dark:text-gray-300'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
             >
               {breadcrumb.label}
             </Link>

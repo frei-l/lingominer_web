@@ -3,20 +3,37 @@
 import React, { useState } from 'react'
 import { Card as UICard, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { SearchBar } from "@/components/search-bar"
-import { CardDialog } from "@/components/card-dialog"
-import { Card } from "@/lib/data/fetchCards"
+import { CardDialog } from "@/components/card/card-dialog"
+import { useCards } from "@/lib/api"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
-export function CardGallery({ cards }: { cards: Card[] }) {
+export function CardGallery() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null)
+  const [selectedCard, setSelectedCard] = useState<any | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  const filteredCards = cards.filter(card =>
+  const { data: cards, error, isLoading } = useCards()
+
+  if (isLoading) {
+    return <div className="flex justify-center items-center py-10">Loading cards...</div>
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="mb-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>Failed to load cards: {error.message}</AlertDescription>
+      </Alert>
+    )
+  }
+
+  const filteredCards = cards ? cards.filter(card =>
     card.paragraph.toLowerCase().includes(searchTerm.toLowerCase()) ||
     card.url.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  ) : []
 
-  const handleCardClick = (card: Card) => {
+  const handleCardClick = (card: any) => {
     setSelectedCard(card)
     setDialogOpen(true)
   }
@@ -40,35 +57,15 @@ export function CardGallery({ cards }: { cards: Card[] }) {
                 {new Date(card.created_at).toLocaleDateString()}
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow p-4">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {(() => {
-                  const words = card.paragraph.split(' ');
-                  const selectedText = card.paragraph.slice(card.pos_start, card.pos_end);
-                  const selectedStartWord = card.paragraph.slice(0, card.pos_start).split(' ').length - 1;
-                  const beforeWords = words.slice(Math.max(0, selectedStartWord - 10), selectedStartWord).join(' ');
-                  const afterWords = words.slice(selectedStartWord + selectedText.split(' ').length, selectedStartWord + selectedText.split(' ').length + 10).join(' ');
-                  return (
-                    <>
-                      {beforeWords && `${beforeWords} `}
-                      <span className="bg-primary/20 font-medium">{selectedText}</span>
-                      {afterWords && ` ${afterWords}`}
-                    </>
-                  );
-                })()}
+            <CardContent className="p-4">
+              <p className="text-gray-500 dark:text-gray-400 text-sm truncate">
+                {card.url}
               </p>
-              <div className="mt-2 text-xs text-gray-500">
-                Status: {card.status}
-              </div>
             </CardContent>
           </UICard>
         ))}
       </div>
-      <CardDialog
-        card={selectedCard}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
+      <CardDialog card={selectedCard} open={dialogOpen} onOpenChange={setDialogOpen} />
     </div>
   )
 }

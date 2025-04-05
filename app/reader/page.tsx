@@ -1,75 +1,59 @@
 "use client"
 
-import Reader from "@/components/reader/reader"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Toaster } from "@/components/ui/toaster"
 import { useToast } from "@/hooks/use-toast"
-import { Passage, createPassage, getPassages } from "@/lib/data/fetchPassage"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { usePassages } from "@/lib/api/useDataFetch"
+import { passagesAPI } from "@/lib/api/useDataUpdate"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function Page() {
-  const [content, setContent] = useState<string | null>(null)
-  const [passages, setPassages] = useState<Passage[]>([])
-  const searchParams = useSearchParams()
+  const [inputUrl, setInputUrl] = useState("")
+  const [isCreating, setIsCreating] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const [inputUrl, setInputUrl] = useState("")
+  const { data: passages = [], error: passagesError } = usePassages()
 
-  useEffect(() => {
-    const fetchPassages = async () => {
-      const result = await getPassages()
-      setPassages(result.passages || [])
-    }
-    fetchPassages()
-  }, [])
-
-  const fetchContent = async () => {
-    if (inputUrl) {
-      try {
-        const passageResult = await createPassage(inputUrl)
-        if (passageResult.error) {
-          console.error("Error creating passage:", passageResult.error)
-          toast({
-            title: "Error",
-            description: "Failed to fetch content from URL",
-            variant: "destructive",
-          })
-          return
-        }
-        setContent(passageResult.passage?.content || null)
-      } catch (error) {
-        console.error("Error fetching content:", error)
-        toast({
-          title: "Error",
-          description: "Failed to fetch content from URL",
-          variant: "destructive",
-        })
-      }
-    } else {
-      setContent(null)
-    }
+  if (passagesError) {
+    console.error("Error fetching passages:", passagesError)
   }
 
-  if (content !== null) {
-    return <Reader content={content} />
+  const handleFetchContent = async () => {
+    if (!inputUrl) return
+
+    setIsCreating(true)
+    try {
+      const passage = await passagesAPI.create({ url: inputUrl })
+      router.push(`/reader/${passage.id}`)
+    } catch (error) {
+      console.error("Error creating passage:", error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to fetch content from URL",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md space-y-8">
         <h1 className="text-3xl font-bold text-center">LingoMiner Reader</h1>
-        <form onSubmit={(e) => { e.preventDefault(); fetchContent(); }} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleFetchContent(); }} className="space-y-4">
           <Input
             type="url"
             placeholder="Enter URL"
             value={inputUrl}
             onChange={(e) => setInputUrl(e.target.value)}
             className="w-full"
+            disabled={isCreating}
           />
-          <Button type="submit" className="w-full">
-            Read from URL
+          <Button type="submit" className="w-full" disabled={isCreating || !inputUrl}>
+            {isCreating ? "Creating passage..." : "Read from URL"}
           </Button>
         </form>
 
@@ -79,7 +63,7 @@ export default function Page() {
             {passages.map((passage) => (
               <div
                 key={passage.id}
-                onClick={() => setContent(passage.content)}
+                onClick={() => router.push(`/reader/${passage.id}`)}
                 className="p-3 rounded-lg border border-border hover:bg-accent cursor-pointer transition-colors"
               >
                 <h3 className="font-medium">{passage.title}</h3>

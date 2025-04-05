@@ -1,13 +1,11 @@
 "use client"
 
-// Component for the explanation bubble
 import { useRef, useEffect, useState } from "react"
-import type { Note } from "@/lib/types"
 import { motion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { X } from "lucide-react"
-
+import type { Note } from "@/lib/api/types"
 interface ExplanationBubbleProps {
     note: Note | null
     isLoading: boolean
@@ -68,7 +66,7 @@ export default function ExplanationBubble({ note, isLoading, onClose, loadingPos
         >
             <Card className="p-4 shadow-lg">
                 <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-sm font-bold">Explanation</h3>
+                    <h3 className="text-sm font-bold">{note?.selected_text}</h3>
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose}>
                         <X size={14} />
                     </Button>
@@ -85,8 +83,8 @@ export default function ExplanationBubble({ note, isLoading, onClose, loadingPos
                             </div>
                         ) : note ? (
                             <>
-                                <div className="mb-2 text-xs text-muted-foreground">"{note.text}"</div>
-                                <p className="text-sm">{note.explanation}</p>
+                                {/* <div className="mb-2 text-xs text-muted-foreground">"{note.selected_text}"</div> */}
+                                <p className="text-sm">{note.content}</p>
                             </>
                         ) : null}
                     </div>

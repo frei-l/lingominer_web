@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { setUserConfig } from "@/lib/cookies"
+import { setUserConfig } from "@/lib/storage"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export function LoginForm() {
   const router = useRouter()
@@ -19,7 +19,8 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
-      await setUserConfig({ apiKey, baseUrl })
+      setUserConfig({ apiKey, baseUrl })
+      // Set auth cookie after successful login
       router.push("/cards")
     } catch (error) {
       console.error("Failed to save configuration:", error)

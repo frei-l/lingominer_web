@@ -3,8 +3,6 @@ import type { NextRequest } from 'next/server'
 
 // Paths that don't require authentication
 const PUBLIC_PATHS = ['/login']
-const LINGOMINER_BASE_URL = 'lingominer_base_url'
-const LINGOMINER_API_KEY = 'lingominer_api_key'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -14,12 +12,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check for authentication
-  if (request.cookies.has(LINGOMINER_BASE_URL) && request.cookies.has(LINGOMINER_API_KEY)) {
-    return NextResponse.next()
-  }
-
-  return NextResponse.redirect(new URL('/login', request.url))
+  return NextResponse.next()
 }
 
 // Configure which paths the middleware runs on

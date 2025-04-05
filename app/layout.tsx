@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Breadcrumb } from "@/components/breadcrumb"
 import './globals.css'
 import { Toaster } from "@/components/ui/toaster"
+import AuthCheck from "@/components/auth-check"
 
 export const metadata: Metadata = {
   title: "LingoMiner",
@@ -31,6 +32,7 @@ export default function RootLayout({
                 <div className="flex items-center gap-2 px-4 w-full">
                   <SidebarTrigger className="-ml-1" />
                   <Breadcrumb />
+                  <AuthCheck />
                 </div>
               </header>
               {children}
