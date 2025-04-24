@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 
 // Hooks and Utilities
 import { useToast } from "@/hooks/use-toast"
-import { FieldType, GenerationDetail, templatesAPI, useGenerationDetail } from "@/lib/api"
+import { FieldType, Generation, templatesAPI, useGenerationDetail } from "@/lib/api"
 import { ArrowLeft, Check, Music, Plus, Trash2, Type, X } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -33,7 +33,7 @@ export function GenerationContainer({ generationId, templateId }: GenerationDeta
 
     // State for generation editing
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-    const [generationEditData, setGenerationEditData] = useState<Partial<GenerationDetail>>({})
+    const [generationEditData, setGenerationEditData] = useState<Partial<Generation>>({})
 
     // State for new field creation
     const [isCreatingOutputField, setIsCreatingOutputField] = useState(false)

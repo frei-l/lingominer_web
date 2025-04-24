@@ -59,8 +59,7 @@ export function CardGallery() {
   }
 
   const filteredCards = cards ? cards.filter(card =>
-    card.paragraph.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    card.url.toLowerCase().includes(searchTerm.toLowerCase())
+    card.paragraph.toLowerCase().includes(searchTerm.toLowerCase())
   ) : []
 
   const handleCardClick = (card: any) => {

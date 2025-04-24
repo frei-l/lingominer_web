@@ -1,9 +1,13 @@
 "use client"
 
 import { apiFetch } from './core'
-import { Card, GenerationDetail, GenerationField, PassageList, Template, CreateNoteRequest, Note, CreateCardRequest } from './types'
+import { Card, CreateCardRequest, CreateNoteRequest, Generation, GenerationField, MochiMappingCreate, Note, PassageItem, Template, UpdateUserRequest, User } from './types'
 
-
+// Users
+export const usersAPI = {
+    update: (data: UpdateUserRequest) =>
+        apiFetch<User>(`/me/settings`, 'PATCH', data)
+}
 
 // Cards
 export const cardsAPI = {
@@ -19,11 +23,13 @@ export const cardsAPI = {
 
 // Passages
 export const passagesAPI = {
-    create: (data: { url: string }) =>
-        apiFetch<PassageList>('/passages', 'POST', data),
+    create: (data: { url: string }) => {
+        const querystring = new URLSearchParams(data)
+        return apiFetch<PassageItem>(`/passages?${querystring.toString()}`, 'POST')
+    },
 
-    update: (id: string, data: Partial<PassageList>) =>
-        apiFetch<PassageList>(`/passages/${id}`, 'PATCH', data),
+    update: (id: string, data: Partial<PassageItem>) =>
+        apiFetch<PassageItem>(`/passages/${id}`, 'PATCH', data),
 
     delete: (id: string) =>
         apiFetch<void>(`/passages/${id}`, 'DELETE'),
@@ -41,10 +47,10 @@ export const templatesAPI = {
         apiFetch<void>(`/templates/${id}`, 'DELETE'),
 
     createGeneration: (templateId: string, data: any) =>
-        apiFetch<GenerationDetail>(`/templates/${templateId}/generations`, 'POST', data),
+        apiFetch<Generation>(`/templates/${templateId}/generations`, 'POST', data),
 
     updateGeneration: (templateId: string, generationId: string, data: any) =>
-        apiFetch<GenerationDetail>(`/templates/${templateId}/generations/${generationId}`, 'PATCH', data),
+        apiFetch<Generation>(`/templates/${templateId}/generations/${generationId}`, 'PATCH', data),
 
     deleteGeneration: (templateId: string, generationId: string) =>
         apiFetch<void>(`/templates/${templateId}/generations/${generationId}`, 'DELETE'),
@@ -57,4 +63,10 @@ export const templatesAPI = {
 
     deleteField: (templateId: string, fieldId: string) =>
         apiFetch<void>(`/templates/${templateId}/fields/${fieldId}`, 'DELETE')
-} 
+}
+
+// Mochi
+export const mochiAPI = {
+    createMapping: (data: MochiMappingCreate) =>
+        apiFetch<void>(`/mochi`, 'POST', data),
+}

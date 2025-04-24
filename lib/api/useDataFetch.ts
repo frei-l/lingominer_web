@@ -2,7 +2,7 @@
 
 import useSWR, { SWRConfiguration } from 'swr'
 import { fetcher, ApiError } from './core'
-import { Card, PassageList, TemplateList, Template, GenerationDetail, Passage } from './types'
+import { Card, PassageItem, TemplateItem, Template, Generation, Passage, User, MochiDeckMapping, MochiDeckMappingItem } from './types'
 
 // Cards
 export function useCards(config?: SWRConfiguration) {
@@ -31,7 +31,7 @@ export function useCard(cardId: string, config?: SWRConfiguration) {
 
 // Passages
 export function usePassages(config?: SWRConfiguration) {
-  return useSWR<PassageList[], ApiError>(
+  return useSWR<PassageItem[], ApiError>(
     '/passages',
     fetcher,
     {
@@ -44,7 +44,7 @@ export function usePassages(config?: SWRConfiguration) {
 
 export function usePassage(passageId: string, config?: SWRConfiguration) {
   return useSWR<Passage, ApiError>(
-    `/passages/${passageId}`,
+    passageId ? `/passages/${passageId}` : null,
     fetcher,
     {
       suspense: false,
@@ -56,7 +56,7 @@ export function usePassage(passageId: string, config?: SWRConfiguration) {
 
 // Templates
 export function useTemplates(config?: SWRConfiguration) {
-  return useSWR<TemplateList[], ApiError>(
+  return useSWR<TemplateItem[], ApiError>(
     '/templates',
     fetcher,
     {
@@ -69,7 +69,7 @@ export function useTemplates(config?: SWRConfiguration) {
 
 export function useTemplateDetail(templateId: string, config?: SWRConfiguration) {
   return useSWR<Template, ApiError>(
-    `/templates/${templateId}`,
+    templateId ? `/templates/${templateId}` : null,
     fetcher,
     {
       suspense: false,
@@ -80,8 +80,8 @@ export function useTemplateDetail(templateId: string, config?: SWRConfiguration)
 }
 
 export function useGenerationDetail(templateId: string, generationId: string, config?: SWRConfiguration) {
-  return useSWR<GenerationDetail, ApiError>(
-    `/templates/${templateId}/generations/${generationId}`,
+  return useSWR<Generation, ApiError>(
+    generationId && templateId ? `/templates/${templateId}/generations/${generationId}` : null,
     fetcher,
     {
       suspense: false,
@@ -89,4 +89,36 @@ export function useGenerationDetail(templateId: string, generationId: string, co
       ...config
     }
   )
-} 
+}
+
+export function useUser(config?: SWRConfiguration) {
+  return useSWR<User, ApiError>(
+    '/me',
+    fetcher,
+    config
+  )
+}
+
+export function useMochiDeckMappings(config?: SWRConfiguration) {
+  return useSWR<MochiDeckMappingItem[], ApiError>(
+    '/mochi',
+    fetcher,
+    {
+      suspense: false,
+      revalidateOnFocus: true,
+      ...config
+    }
+  )
+}
+
+export function useMochiDeckMapping(deckId: string, config?: SWRConfiguration) {
+  return useSWR<MochiDeckMapping, ApiError>(
+    deckId ? `/mochi/${deckId}` : null,
+    fetcher,
+    {
+      suspense: false,
+      revalidateOnFocus: true,
+      ...config
+    }
+  )
+}

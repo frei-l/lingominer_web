@@ -14,7 +14,7 @@ export interface Card {
 }
 
 // Passage types
-export interface PassageList {
+export interface PassageItem {
   id: string
   user_id: string
   title: string
@@ -23,7 +23,7 @@ export interface PassageList {
   modified_at: string
 }
 
-export interface Passage extends PassageList {
+export interface Passage extends PassageItem {
   content: string
   notes: Note[]
 }
@@ -41,7 +41,7 @@ export interface Note {
 }
 
 // Template types
-export interface TemplateList {
+export interface TemplateItem {
   id: string
   name: string
   lang: string
@@ -80,7 +80,7 @@ export interface GenerationField {
   source_id: string
 }
 
-export interface GenerationDetail {
+export interface Generation {
   id: string
   name: string
   method: string
@@ -88,6 +88,23 @@ export interface GenerationDetail {
   template_id: string
   inputs: GenerationField[]
   outputs: GenerationField[]
+}
+
+// User types
+export interface User {
+  id: string
+  name: string
+  api_keys: ApiKey[]
+  mochi_api_key: string
+  created_at: string
+  modified_at: string
+}
+
+export interface ApiKey {
+  id: string
+  key: string
+  created_at: string
+  modified_at: string
 }
 
 // Request/Response types
@@ -135,6 +152,51 @@ export interface CreateCardRequest {
   template_id?: string
   url?: string
 }
-
+export interface UpdateUserRequest {
+  mochi_api_key?: string
+}
 // Utility types
-export type FieldType = "text" | "audio" 
+export type FieldType = "text" | "audio"
+
+export interface MochiDeckMappingItem {
+  id: string
+  name: string
+
+  template_id: string
+
+  lingominer_template_name: string | null
+  lingominer_template_id: string | null
+}
+
+export interface MochiDeckMapping extends MochiDeckMappingItem {
+  lingominer_template_name: string | null
+  lingominer_template_id: string | null
+
+  template_content: string
+  template_fields: Record<
+    string,
+    {
+      id: string
+      name: string
+      type: string | null
+      options: Record<string, string | boolean> | null
+      source: string | null
+
+      lingominer_field_name: string | null
+      lingominer_field_id: string | null
+    }
+  >
+}
+
+export interface MochiMappingCreate {
+  mochi_deck_id: string
+  mochi_template_id: string
+
+  lingominer_template_id: string
+  lingominer_template_name: string
+  mapping: Record<string,
+    {
+      id: string
+      name: string
+    } | null>
+}
