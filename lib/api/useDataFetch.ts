@@ -99,9 +99,9 @@ export function useUser(config?: SWRConfiguration) {
   )
 }
 
-export function useMochiDeckMappings(config?: SWRConfiguration) {
+export function useMochiDeckMappings(lm_template_id?: string, config?: SWRConfiguration) {
   return useSWR<MochiDeckMappingItem[], ApiError>(
-    '/mochi',
+    lm_template_id ? `/mochi?lm_template_id=${lm_template_id}` : '/mochi',
     fetcher,
     {
       suspense: false,

@@ -3,7 +3,13 @@
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card } from "@/lib/api"
-import { Trash2 } from "lucide-react"
+import { Trash2, Send } from "lucide-react"
+import { useTemplates } from "@/lib/api"
+import { mochiAPI } from "@/lib/api/useDataUpdate"
+import { useMochiDeckMappings } from "@/lib/api/useDataFetch"
+import { useState } from "react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
 
 interface CardDialogProps {
   card: Card | null
@@ -13,8 +19,38 @@ interface CardDialogProps {
 }
 
 export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogProps) {
+  const [selectedDeckId, setSelectedDeckId] = useState<string>("")
+  const [isCreating, setIsCreating] = useState(false)
+  const { toast } = useToast()
+
+
+  const { data: mochiMappings, isLoading: mochiMappingsLoading, error: mochiMappingsError } =
+    useMochiDeckMappings(card?.template_id)
 
   if (!card) return null
+
+  const handleExportToMochi = async () => {
+    if (!selectedDeckId || !card) return
+
+    try {
+      setIsCreating(true)
+      await mochiAPI.createCard(selectedDeckId, card.id)
+      toast({
+        title: "Success",
+        description: "Card exported to Mochi successfully",
+        variant: "default",
+      })
+    } catch (error) {
+      console.error("Error creating Mochi card:", error)
+      toast({
+        title: "Error",
+        description: "Failed to export card to Mochi",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCreating(false)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,14 +107,52 @@ export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogPro
           </div>
         </div>
 
-        <DialogFooter className="flex justify-between">
-          <Button variant="destructive" onClick={() => onDelete(card.id)}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
+        <DialogFooter className="grid grid-cols-2 items-start">
+          <div className="flex flex-col space-y-2">
+            <div className="flex gap-2">
+              <Select
+                value={selectedDeckId}
+                onValueChange={setSelectedDeckId}
+                disabled={mochiMappingsLoading || !mochiMappings?.length}
+              >
+                <SelectTrigger className="w-[250px]">
+                  <SelectValue placeholder="Select Mochi deck" />
+                </SelectTrigger>
+                <SelectContent>
+                  {mochiMappings?.map((mapping) => (
+                    <SelectItem key={mapping.id} value={mapping.id}>
+                      {mapping.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportToMochi}
+                disabled={!selectedDeckId || isCreating}
+              >
+                <Send className="mr-2 h-4 w-4" />
+                {isCreating ? "Exporting..." : "Export to Mochi"}
+              </Button>
+            </div>
+            {mochiMappingsError && (
+              <p className="text-sm text-red-500">Failed to load Mochi mappings</p>
+            )}
+            {mochiMappings?.length === 0 && (
+              <p className="text-sm text-amber-500">No Mochi mappings available for this template</p>
+            )}
+          </div>
+          
+          <div className="flex gap-2 justify-end">
+            <Button variant="destructive" onClick={() => onDelete(card.id)}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

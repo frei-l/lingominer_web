@@ -69,4 +69,6 @@ export const templatesAPI = {
 export const mochiAPI = {
     createMapping: (data: MochiMappingCreate) =>
         apiFetch<void>(`/mochi`, 'POST', data),
+    createCard: (deckId: string, lm_card_id: string) =>
+        apiFetch<Card>(`/mochi/${deckId}/cards?lm_card_id=${lm_card_id}`, 'POST'),
 }

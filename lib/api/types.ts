@@ -10,6 +10,7 @@ export interface Card {
   url: string
   status: string
   created_at: string
+  template_id: string
   modified_at: string
 }
 
