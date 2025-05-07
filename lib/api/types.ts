@@ -91,6 +91,13 @@ export interface Generation {
   outputs: GenerationField[]
 }
 
+export interface GenerationUpdate {
+  name?: string
+  method?: string
+  prompt?: string
+  inputs?: string[]
+}
+
 // User types
 export interface User {
   id: string
