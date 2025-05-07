@@ -35,7 +35,7 @@ export function CardGallery() {
       <>
         {hasMoreBefore && '... '}
         {before}{' '}
-        <span className="bg-blue-200 dark:bg-blue-800 px-1 rounded">
+        <span className="bg-yellow-200 dark:bg-yellow-800 px-1 rounded">
           {selected}
         </span>
         {' '}{after}

@@ -62,7 +62,7 @@ export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogPro
           </DialogDescription>
         </DialogHeader>
 
-        <div className="my-4 space-y-4">
+        <div className="my-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
           <div>
             <h3 className="text-lg font-semibold mb-2">Context</h3>
             <p className="text-gray-700 dark:text-gray-300">
@@ -75,7 +75,7 @@ export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogPro
                 return (
                   <>
                     {beforeWords && `${beforeWords} `}
-                    <span className="bg-primary/20 font-medium">{selectedText}</span>
+                    <span className="bg-yellow-200 font-medium">{selectedText}</span>
                     {afterWords && ` ${afterWords}`}
                   </>
                 );
@@ -84,15 +84,15 @@ export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogPro
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold mb-2">Content</h3>
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md">
-              <pre className="whitespace-pre-wrap break-words">
-                {JSON.stringify(card.content, null, 2)}
-              </pre>
-            </div>
+            {Object.entries(card.content).map(([key, value]) => (
+              <div className="dark:bg-gray-800 mt-4 rounded-md">
+                <h4 className="text-lg font-semibold mb-2">{key}</h4>
+                <p className="text-gray-700 dark:text-gray-300 bg-gray-100 p-2 rounded-md">{value}</p>
+              </div>
+            ))}
           </div>
 
-          <div className="flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center justify-between text-sm text-gray-500 pb-4">
             <div>Status: {card.status}</div>
             <div>
               <a
@@ -143,7 +143,7 @@ export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogPro
               <p className="text-sm text-amber-500">No Mochi mappings available for this template</p>
             )}
           </div>
-          
+
           <div className="flex gap-2 justify-end">
             <Button variant="destructive" onClick={() => onDelete(card.id)}>
               <Trash2 className="mr-2 h-4 w-4" />
