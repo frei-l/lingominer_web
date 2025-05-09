@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { WalletCardsIcon as Cards, FileText, Settings, LayoutDashboard, BookOpen, Blocks} from 'lucide-react'
+import { WalletCardsIcon as Cards, FileText, Settings, LayoutDashboard, BookOpen, Blocks, MessageCircle} from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -39,6 +39,11 @@ const data = {
       title: "Mochi",
       url: "/mochi",
       icon: Blocks,
+    },
+    {
+      title: "Chat",
+      url: "/chat",
+      icon: MessageCircle,
     },
     {
       title: "Settings",
