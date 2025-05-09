@@ -84,10 +84,10 @@ export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogPro
           </div>
 
           <div>
-            {Object.entries(card.content).map(([key, value]) => (
-              <div className="dark:bg-gray-800 mt-4 rounded-md">
-                <h4 className="text-lg font-semibold mb-2">{key}</h4>
-                <p className="text-gray-700 dark:text-gray-300 bg-gray-100 p-2 rounded-md">{value}</p>
+            {Object.entries(card.content).map(([k, v]) => (
+              <div key={k} className="dark:bg-gray-800 mt-4 rounded-md">
+                <h4 className="text-lg font-semibold mb-2">{k}</h4>
+                <p className="text-gray-700 dark:text-gray-300 bg-gray-100 p-2 rounded-md">{v.value}</p>
               </div>
             ))}
           </div>

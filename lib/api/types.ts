@@ -1,12 +1,18 @@
 // Common types for API models
 
+export interface CardContent {
+  [key: string]: {
+    type: string
+    value: string
+  }
+}
 // Card types
 export interface Card {
   id: string
   paragraph: string
   pos_start: number
   pos_end: number
-  content: object
+  content: CardContent
   url: string
   status: string
   created_at: string
