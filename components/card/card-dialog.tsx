@@ -84,12 +84,50 @@ export function CardDialog({ card, open, onOpenChange, onDelete }: CardDialogPro
           </div>
 
           <div>
-            {Object.entries(card.content).map(([k, v]) => (
-              <div key={k} className="dark:bg-gray-800 mt-4 rounded-md">
-                <h4 className="text-lg font-semibold mb-2">{k}</h4>
-                <p className="text-gray-700 dark:text-gray-300 bg-gray-100 p-2 rounded-md">{v.value}</p>
-              </div>
-            ))}
+            {Object.entries(card.content).map(([k, v]) => {
+              const ossBaseUrl = "https://oss.frei.fun"
+
+              let contentElement;
+              if (v.type === "text") {
+                contentElement = (
+                  <p className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 p-3 rounded-md text-sm">
+                    {v.value}
+                  </p>
+                );
+              } else if (v.type === "audio") {
+                contentElement = (
+                  <div className="mt-2">
+                    <audio controls src={`${ossBaseUrl}/${v.value}`} className="w-full">
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                );
+              } else if (v.type === "image") {
+                contentElement = (
+                  <div className="mt-2 flex justify-center">
+                    <img
+                      src={`${ossBaseUrl}/${v.value}`}
+                      alt={k}
+                      className="max-w-full h-auto rounded-md border border-gray-200 dark:border-gray-700"
+                      style={{ maxHeight: "300px" }}
+                    />
+                  </div>
+                );
+              } else {
+                contentElement = (
+                  <p className="text-red-500 dark:text-red-400 bg-red-100 dark:bg-red-900 p-3 rounded-md text-sm">
+                    Unsupported content type: {v.type || "unknown"}
+                  </p>
+                );
+              }
+
+              return (
+                <div key={k} className="bg-gray-50 dark:bg-gray-800 mt-4 rounded-lg shadow p-4">
+                  <h4 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200">{k}</h4>
+                  {contentElement}
+                </div>
+              );
+            })}
           </div>
 
           <div className="flex items-center justify-between text-sm text-gray-500 pb-4">

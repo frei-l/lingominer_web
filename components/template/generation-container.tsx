@@ -29,7 +29,7 @@ export function GenerationContainer({ generationId, templateId }: GenerationDeta
     const [generationEditData, setGenerationEditData] = useState<{ method: string; prompt: string } | null>(null)
 
     // Constants
-    const generationOptions = ["completion"]
+    const generationOptions = ["completion", "toSpeech"]
 
     const extractInputNames = (prompt: string) => {
         const inputNames = prompt.match(/{{(\w+)}}/g)
@@ -188,6 +188,7 @@ export function GenerationContainer({ generationId, templateId }: GenerationDeta
 
                     <div>
                         <label className="text-sm font-medium mb-2 block">Prompt</label>
+                        <span className="text-xs text-gray-500 mb-2 block">built in: decorated_paragraph</span>
                         <Textarea
                             placeholder="Enter your prompt here"
                             value={generationEditData?.prompt ?? generation.prompt}

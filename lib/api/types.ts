@@ -2,7 +2,7 @@
 
 export interface CardContent {
   [key: string]: {
-    type: string
+    type: "text" | "audio" | "image"
     value: string
   }
 }

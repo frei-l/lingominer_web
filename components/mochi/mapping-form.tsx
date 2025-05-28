@@ -36,12 +36,19 @@ const createMappingPayload = (
     lingoMinerTemplateId: string,
     lingoMinerTemplateName: string
 ) => {
+    const filteredMappings = Object.entries(fieldMappings)
+        .filter(([_, value]) => value !== null)
+        .reduce((obj, [key, value]) => {
+            obj[key] = value;
+            return obj;
+        }, {} as Record<string, { id: string, name: string } | null>);
+
     return {
         lingominer_template_id: lingoMinerTemplateId,
         lingominer_template_name: lingoMinerTemplateName,
         mochi_deck_id: mochiDeckId,
         mochi_template_id: mochiTemplateId,
-        mapping: fieldMappings
+        mapping: filteredMappings
     } as MochiMappingCreate
 }
 
